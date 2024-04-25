@@ -1,0 +1,145 @@
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
+
+# Sample data (Replace this with your dataset)
+# Features: weather data, river gauge data, etc.
+# Target: flood occurrence (1 for flood, 0 for no flood)
+data = {
+    'weather_temp': [25, 28, 36, 24, 26],
+    'river_level': [1.5, 1.8, 2.2, 1.2, 1.8],
+    'flood_occurrence': [0, 1, 1, 1, 0]
+}
+df = pd.DataFrame(data)
+
+# Data preprocessing
+X = df[['weather_temp', 'river_level']]
+y = df['flood_occurrence']
+
+scaler = MinMaxScaler()
+X_scaled = scaler.fit_transform(X)
+
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# AI model building
+model = keras.Sequential([
+    keras.layers.Dense(32, input_shape=(X_train.shape[1],), activation='relu'),
+    keras.layers.Dense(16, activation='relu'),
+    keras.layers.Dense(1, activation='sigmoid')
+])
+
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+model.fit(X_train, y_train, epochs=50, batch_size=1, verbose=1)
+
+# Prediction
+y_pred = model.predict(X_test)
+y_pred = (y_pred > 0.5).astype(int)
+
+# Evaluation
+mse = mean_squared_error(y_test, y_pred)
+print("Mean Squared Error:", mse)
+def create_model(optimizer='adam'):
+    model = keras.Sequential([
+        keras.layers.Dense(32, input_shape=(X_train.shape[1],), activation='relu'),
+        keras.layers.Dropout(0.5),
+        keras.layers.Dense(16, activation='relu'),
+        keras.layers.Dropout(0.5),
+        keras.layers.Dense(1, activation='sigmoid')
+    ])
+
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# Using the best parameters from GridSearchCV
+# Define the best parameters manually
+best_params = {
+    'optimizer': 'adam',
+    'epochs': 50,
+    'batch_size': 1
+}
+
+# Create the model with the best parameters
+model = create_model(optimizer=best_params['optimizer'])
+
+# Fit the model with the best parameters
+model.fit(X_train, y_train, epochs=best_params['epochs'], batch_size=best_params['batch_size'], verbose=1)
+model = create_model(optimizer=best_params['optimizer'])
+model.fit(X_train, y_train, epochs=best_params['epochs'], batch_size=best_params['batch_size'], verbose=1)
+from sklearn.preprocessing import StandardScaler
+
+# Standardize the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Split the dataset
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=40)
+model = keras.Sequential([
+    keras.layers.Dense(32, input_shape=(X_train.shape[1],), activation='relu'),
+    keras.layers.Dropout(0.4),
+    keras.layers.Dense(16, activation='relu'),
+    keras.layers.Dropout(0.4),
+    keras.layers.Dense(1, activation='sigmoid')
+])
+
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+model.fit(X_train, y_train, epochs=50, batch_size=1, verbose=1)
+
+# Evaluate the model
+loss, accuracy = model.evaluate(X_test, y_test)
+print("Loss:", loss)
+print("Accuracy:", accuracy)
+from sklearn.ensemble import RandomForestClassifier
+
+clf_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+clf_rf.fit(X_train, y_train)
+
+# Prediction
+y_pred_rf = clf_rf.predict(X_test)
+
+# Evaluation
+accuracy_rf = accuracy_score(y_test, y_pred_rf)
+print("Random Forest Accuracy:", accuracy_rf)
+from sklearn.svm import SVC
+from sklearn.pipeline import make_pipeline
+
+# Standardize features
+clf_svc = make_pipeline(StandardScaler(), SVC(gamma='auto'))
+
+clf_svc.fit(X_train, y_train)
+
+# Prediction
+y_pred_svc = clf_svc.predict(X_test)
+
+# Evaluation
+accuracy_svc = accuracy_score(y_test, y_pred_svc)
+print("SVM Accuracy:", accuracy_svc)from flask import Flask, render_template, request
+import numpy as np
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    temp = float(request.form['temp'])
+    level = float(request.form['level'])
+    
+    # Preprocess the input
+    input_data = scaler.transform([[temp, level]])
+    
+    # Predict
+    prediction = model.predict(input_data)
+    prediction_text = "Flood" if prediction > 0.5 else "No Flood"
+    
+    return render_template('index.html', prediction_text=prediction_text)
+
+if __name__ == '__main__':
+    app.run(debug=True)
